@@ -2,39 +2,40 @@ import { NextRequest, NextResponse } from "next/server"
 
 import prisma from "../../../../db/src/index" 
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, ) {
+    
     try {
-      const { pubKey, roleType ,name} = await req.json();
+      const { name , pubKey  , role} = await req.json();
   
-      if (!pubKey || !roleType) {
-        return NextResponse.json({ error: "Missing pubKey or roleType" }, { status: 400 });
+      if (!name || !pubKey || !role) {
+        return NextResponse.json({ error: "Missing name, pubKey, or role" }, { status: 400 });
+      }
+      const pubkeyfind = await prisma.participant.findUnique({
+        where: {
+          pubKey: pubKey
+        }
+      })
+      if (pubkeyfind) {
+        return NextResponse.json({ error: "Pubkey already exists" }, { status: 400 });
+      }
+      const allowedTypes = ["MANUFACTURER", "SUPPLIER", "DISTRIBUTOR", "RETAILER"];
+      if (!allowedTypes.includes(role)) {
+        return NextResponse.json({ error: "Invalid role" }, { status: 400 });
       }
   
-      const allowedTypes = ["MANUFACTURER", "SUPPLIER", "CONSUMER"];
-      if (!allowedTypes.includes(roleType)) {
-        return NextResponse.json({ error: "Invalid roleType" }, { status: 400 });
-      }
-  
-      const role = await prisma.role.create({
+      const roleCreated = await prisma.participant.create({
         data: {
-            pubKey,
             name,
-            roleType,
+            pubKey,
+            role,
+            createdAt: new Date(),
         }
       })    
-  
-      return NextResponse.json({ message: "Role created or updated", role });
+      console.log(roleCreated);
+      return NextResponse.json({ message: "Role created", role });
     } catch (error) {
       console.error("[POST /api/role] Error:", error);
       return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
   }
 
-//   where: { pubKey },
-//   update: {
-//     roleType, 
-//   },
-//   create: {
-//     pubKey,
-//     roleType,
-//   },
