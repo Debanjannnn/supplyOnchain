@@ -46,6 +46,17 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const pubKey = searchParams.get("pubKey");
+    if (pubKey) {
+      const participant = await prisma.participant.findUnique({
+        where: { pubKey },
+      });
+      if (!participant) {
+        return NextResponse.json({ error: "Participant not found" }, { status: 404 });
+      }
+      return NextResponse.json({ participant });
+    }
     const participants = await prisma.participant.findMany({
       orderBy: { createdAt: "desc" },
     });
