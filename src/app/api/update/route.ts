@@ -26,3 +26,25 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Product update created", productupdate });
 }
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const batchId = searchParams.get('batchId');
+        let updates;
+        if (batchId) {
+            updates = await prisma.productUpdate.findMany({
+                where: { batchId },
+                orderBy: { createdAt: 'asc' },
+            });
+        } else {
+            updates = await prisma.productUpdate.findMany({
+                orderBy: { createdAt: 'asc' },
+            });
+        }
+        return NextResponse.json({ updates });
+    } catch (error) {
+        console.error('[GET /api/update] Error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}

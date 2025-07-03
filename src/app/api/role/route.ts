@@ -43,3 +43,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const participants = await prisma.participant.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json({ participants });
+  } catch (error) {
+    console.error("[GET /api/role] Error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

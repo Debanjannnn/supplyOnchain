@@ -37,3 +37,25 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Product track created", producttrack });
 }
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const batchId = searchParams.get('batchId');
+        let tracks;
+        if (batchId) {
+            tracks = await prisma.productTrack.findMany({
+                where: { batchId },
+                orderBy: { createdAt: 'asc' },
+            });
+        } else {
+            tracks = await prisma.productTrack.findMany({
+                orderBy: { createdAt: 'asc' },
+            });
+        }
+        return NextResponse.json({ tracks });
+    } catch (error) {
+        console.error('[GET /api/track] Error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
