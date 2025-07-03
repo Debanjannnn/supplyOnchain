@@ -10,7 +10,7 @@ datasource db {
 }
 
 // Products in the supply chain
-model Product {
+model Product {  
   id              String         @id @default(uuid())
   name            String
   batchId         String         @unique
@@ -30,8 +30,8 @@ model Product {
   createdAt       DateTime       @default(now())
 }
 
-// Participants (manufacturers, suppliers, etc.)
-model Participant {
+// Participants (manufacturers, suppliers, etc.)  (done)
+model Participant { 
   id        String   @id @default(uuid())
   name      String
   pubKey    String   @unique      // Wallet address
