@@ -1,0 +1,96 @@
+// Simple Prisma schema for supply chain MVP
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Products in the supply chain
+model Product {
+  id              String         @id @default(uuid())
+  name            String
+  batchId         String         @unique
+  description     String
+  price           Int            // Price in cents
+  quantity        Int
+  category        Category
+  manufacturerKey String         // Manufacturer's public key
+  
+  // Relations
+  tracks          ProductTrack[]
+  updates         ProductUpdate[]
+  
+  // Blockchain
+  txHash          String?        // Transaction hash
+  
+  createdAt       DateTime       @default(now())
+}
+
+// Participants (manufacturers, suppliers, etc.)
+model Participant {
+  id        String   @id @default(uuid())
+  name      String
+  pubKey    String   @unique      // Wallet address
+  role      RoleType
+  createdAt DateTime @default(now())
+}
+
+// Track product movement
+model ProductTrack {
+  id          String   @id @default(uuid())
+  batchId     String   
+  step        Step
+  location    String
+  holder      String   // Current holder's public key
+  message     String?  // Optional notes
+  
+  // Relations
+  product     Product  @relation(fields: [batchId], references: [batchId])
+  
+  // Blockchain
+  txHash      String?
+  
+  createdAt   DateTime @default(now())
+}
+
+// Signed updates from participants
+model ProductUpdate {
+  id          String   @id @default(uuid())
+  batchId     String   
+  signatures  Json     // Array: [{ pubkey: string, signature: string }]
+  
+  // Relations
+  product     Product  @relation(fields: [batchId], references: [batchId])
+  
+  // Blockchain
+  txHash      String?
+  
+  createdAt   DateTime @default(now())
+}
+
+// Enums
+enum Step {
+  PRODUCED
+  SHIPPED
+  RECEIVED
+  DELIVERED
+}
+
+enum RoleType {
+  MANUFACTURER
+  SUPPLIER
+  DISTRIBUTOR
+  RETAILER
+}
+
+enum Category {
+  FOOD
+  ELECTRONICS
+  MEDICINE
+  FASHION
+  OTHER
+}
